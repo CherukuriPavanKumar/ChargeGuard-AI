@@ -1,0 +1,23 @@
+# JavaScript dependencies and build output
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Python environments, caches, coverage, and generated reports
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/.pytest_cache/
+backend/.coverage
+backend/htmlcov/
+*.pyc
+
+# Local environment files and secrets
+.env
+.env.*
+!.env.example
+
+# Local browser and editor artifacts
+.playwright-mcp/
+.vscode/
+*.swp
