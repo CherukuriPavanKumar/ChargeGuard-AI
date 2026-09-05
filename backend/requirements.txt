@@ -1,0 +1,31 @@
+# --- API ---
+fastapi>=0.110
+uvicorn[standard]>=0.27
+pydantic>=2.6
+pydantic-settings>=2.2
+
+# --- Model ---
+lightgbm>=4.3
+scikit-learn>=1.4
+numpy>=1.26
+pandas>=2.2
+
+# --- Multi-modal extraction ---
+rapidfuzz>=3.6
+pillow>=10.2
+pytesseract>=0.3.10
+
+# --- Packet rendering ---
+jinja2>=3.1
+# WeasyPrint needs a native GTK/Pango/Cairo stack that is painful on Windows.
+# The renderer treats it as optional and falls back to HTML output, so a failed
+# install here degrades the packet format rather than breaking the build.
+weasyprint>=61.0 ; sys_platform != "win32"
+
+# --- LLM ---
+anthropic>=0.25
+httpx>=0.27
+
+# --- Test ---
+pytest>=8.0
+pytest-cov>=5.0

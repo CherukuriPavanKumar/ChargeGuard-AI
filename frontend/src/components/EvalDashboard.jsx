@@ -1,0 +1,783 @@
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import clsx from 'clsx';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Line,
+  LineChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import { AlertCircle, ChevronDown, FileText, Terminal } from 'lucide-react';
+
+import metrics from '../data/metrics.json';
+import CalibrationCurve from './CalibrationCurve.jsx';
+import LatencyHistogram from './LatencyHistogram.jsx';
+import { SectionHeading } from './ui/GlassCard.jsx';
+import { formatInr, formatInrCompact, formatPercent } from '../lib/economics.js';
+
+/**
+ * The evaluation dashboard.
+ *
+ * Every figure on this panel is read from `../data/metrics.json`, which
+ * `make eval` writes from the harness run. There is no metric literal anywhere
+ * in this file — if the harness has not run, `test_set_size` is 0 and the whole
+ * section renders an instruction instead of a number.
+ *
+ * The section leads with the cost sweep rather than the headline efficiency,
+ * and that ordering is deliberate. At the default filing cost ChargeGuard beats
+ * "contest everything" by less than one point, and burying that under a large
+ * green number would be the kind of presentation this project is arguing
+ * against.
+ */
+
+const AXIS = {
+  stroke: 'rgba(148,163,184,0.28)',
+  tick: {
+    fill: 'rgba(148,163,184,0.65)',
+    fontSize: 10,
+    fontFamily: 'JetBrains Mono',
+  },
+};
+
+const TOOLTIP_STYLE = {
+  background: 'rgba(17,23,37,0.96)',
+  border: '1px solid rgba(255,255,255,0.12)',
+  borderRadius: '10px',
+  fontSize: '11px',
+  fontFamily: 'JetBrains Mono',
+  padding: '8px 10px',
+};
+
+const hasMetrics = (metrics?.test_set_size ?? 0) > 0;
+
+function EmptyState() {
+  return (
+    <section id="eval" className="relative py-24 sm:py-32">
+      <div className="mx-auto max-w-content px-5 sm:px-8">
+        <SectionHeading
+          eyebrow="Evaluation"
+          title="No evaluation artifact found."
+          lead="This dashboard reads every figure it displays from a file the harness writes. That file is currently empty, so there is nothing honest to show."
+        />
+        <div className="glass mt-10 p-8">
+          <div className="flex items-start gap-4">
+            <AlertCircle size={20} className="mt-0.5 shrink-0 text-coral" />
+            <div className="min-w-0">
+              <h3 className="font-display text-lg font-600 text-white">
+                Run the pipeline
+              </h3>
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-slateink/75 text-pretty">
+                Generate the corpus, train the model, and evaluate on the
+                held-out split. The harness writes{' '}
+                <code className="font-mono text-2xs text-slateink">
+                  backend/eval/reports/metrics.json
+                </code>{' '}
+                and copies it here.
+              </p>
+              <div className="mt-5 flex items-center gap-2.5 rounded-xl border border-white/10 bg-black/30 px-4 py-3">
+                <Terminal size={14} className="text-emerald" />
+                <code className="font-mono text-sm text-emerald">make all</code>
+              </div>
+              <p className="mt-4 text-xs leading-relaxed text-slateink/55">
+                This panel deliberately does not fall back to sample values. A
+                dashboard that shows plausible numbers when it has none is worse
+                than one that shows nothing, because the numbers look real.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * The model card, summarised and collapsible.
+ *
+ * The full document is `MODEL_CARD.md` at the repository root. This surfaces the
+ * points a reviewer needs *while looking at the metrics* -- what the model is
+ * for, what it must not be used for, why calibration is a correctness
+ * requirement rather than a nicety, and which customer attributes are
+ * deliberately excluded.
+ *
+ * Collapsed by default: it is reference material, not the argument, and
+ * expanding it is a deliberate act rather than something the reader has to
+ * scroll past.
+ */
+const MODEL_CARD_SECTIONS = [
+  {
+    title: 'Intended use',
+    body: 'Estimates P(win | evidence) for a card-scheme representment. It has exactly one consumer — the policy engine — which compares that probability against the per-dispute threshold λc/A. The model is a component of a decision system, not a decision system.',
+  },
+  {
+    title: 'Out of scope',
+    body: 'Not for authorisation-time transaction scoring: it is trained on post-hoc dispute outcomes and sees evidence that does not exist at authorisation. Not for any decision about a person. Not for automated filing without human review — scheme monitoring programmes penalise excessive representment.',
+  },
+  {
+    title: 'Training data',
+    body: 'Synthetic, 20,000 disputes, 15,000/5,000 split on frozen seeds. Generated by a documented latent process in data_gen/generator.py. Two drivers of the outcome — an unobservable friendly-fraud indicator and a Normal(0, 0.85) error term — appear in no feature, which bounds achievable AUC by construction.',
+  },
+  {
+    title: 'Feature families',
+    body: '35 features across four families: transaction (9), fulfilment (10), behavioural (8), evidence completeness (8). Ordered and version-locked by a registry that fails at import if its order drifts from the schema — column drift would silently score the wrong values.',
+  },
+  {
+    title: 'Calibration, and why the EV rule needs it',
+    body: 'The engine multiplies p by rupees and compares it against an arithmetic threshold, so a score that ranks correctly but is numerically wrong corrupts every comparison — invisibly, because ROC-AUC is blind to monotone distortion. Isotonic is fitted on 11,250 out-of-fold predictions, then measured against the raw booster on an untouched fold, and the better one ships.',
+  },
+  {
+    title: 'Known limitations',
+    body: 'The data is synthetic and these are not production performance claims. The gates and the generator agree by design, so they are not independent evidence for each other. One gate is value-destroying at the default cost, and the margin over "contest everything" is thin at c = ₹350 and negative at c = ₹150. No temporal validation — the split is random, not time-ordered.',
+  },
+  {
+    title: 'Fairness — what is deliberately excluded',
+    body: 'No name (proxy for ethnicity, religion, national origin), no gender or age, no postal code or city as a categorical (strong proxy for caste, religion and income in India), no card BIN or issuing bank (income proxies), no language or device tier. Names and addresses enter only as fuzzy similarity between two documents — never as identity. Residual risk: the label is issuer behaviour, so real-data training could inherit issuer-side disparity even with none of these present. Not measured here, and that is a limitation of this evaluation rather than evidence of its absence.',
+  },
+];
+
+function ModelCardPanel() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="glass mt-5 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex min-h-[44px] w-full items-center justify-between gap-3 px-5 py-4 text-left transition-colors hover:bg-white/[0.03]"
+      >
+        <span className="flex items-center gap-2.5">
+          <FileText size={15} className="text-slateink" />
+          <span className="font-display text-base font-600 text-white">
+            Model card
+          </span>
+          <span className="font-mono text-[10px] text-slateink/45">
+            MODEL_CARD.md
+          </span>
+        </span>
+        <ChevronDown
+          size={16}
+          className={clsx(
+            'shrink-0 text-slateink transition-transform duration-300',
+            open && 'rotate-180',
+          )}
+        />
+      </button>
+
+      {open && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          className="overflow-hidden border-t border-white/10"
+        >
+          <dl className="grid gap-x-8 gap-y-5 px-5 py-5 sm:grid-cols-2">
+            {MODEL_CARD_SECTIONS.map((sec) => (
+              <div key={sec.title}>
+                <dt className="font-display text-sm font-600 text-white">
+                  {sec.title}
+                </dt>
+                <dd className="mt-1.5 text-xs leading-relaxed text-slateink/70 text-pretty">
+                  {sec.body}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
+function MetricCell({ label, value, hint, tone = 'text-white' }) {
+  return (
+    <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
+      <div className="eyebrow mb-1.5">{label}</div>
+      <div className={clsx('font-mono text-xl tabular', tone)}>{value}</div>
+      {hint && (
+        <div className="mt-1 text-[11px] leading-snug text-slateink/50">
+          {hint}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function EvalDashboard() {
+  const [sweepMetric, setSweepMetric] = useState('efficiency');
+
+  if (!hasMetrics) return <EmptyState />;
+
+  const clf = metrics.classifier;
+  const econ = metrics.economics;
+  const cfg = metrics.config ?? {};
+  const cal = metrics.calibration_effect ?? {};
+  const costSweep = metrics.cost_sweep ?? [];
+  const segments = metrics.segments ?? [];
+  const gateActivity = metrics.gate_activity ?? [];
+
+  const defaultCostRow =
+    costSweep.find((row) => row.is_default) ?? costSweep[0] ?? {};
+
+  // ChargeGuard plus the four comparators, sorted by efficiency for the chart.
+  const efficiencyData = [
+    {
+      name: 'ChargeGuard',
+      efficiency: econ.oracle_efficiency,
+      yield: econ.net_yield_inr,
+      isChargeGuard: true,
+    },
+    ...(metrics.baselines ?? []).map((b) => ({
+      name: b.name,
+      efficiency: b.oracle_efficiency,
+      yield: b.net_yield_inr,
+      isChargeGuard: false,
+    })),
+  ].sort((a, b) => b.efficiency - a.efficiency);
+
+  return (
+    <section id="eval" className="relative py-24 sm:py-32">
+      <div className="mx-auto max-w-content px-5 sm:px-8">
+        <SectionHeading
+          eyebrow={`Held-out evaluation · ${metrics.test_set_size.toLocaleString('en-IN')} disputes`}
+          title="Where the arbitrage earns its keep — and where it does not."
+          lead="Scored in rupees against a perfect-foresight oracle, on a test split no training step ever saw. The honest headline is not a single number; it is a curve."
+        />
+
+        {/* ---------------------------------------------------------------- */}
+        {/* Lead with the cost sweep, not the flattering point.              */}
+        {/* ---------------------------------------------------------------- */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="glass mt-10 p-5 sm:p-6"
+        >
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h3 className="font-display text-lg font-600 text-white">
+                Selectivity is worth nothing when filing is nearly free
+              </h3>
+              <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slateink/70 text-pretty">
+                At the default{' '}
+                <span className="font-mono text-white">
+                  c = {formatInr(cfg.representment_cost_inr ?? 350)}
+                </span>{' '}
+                ChargeGuard beats &ldquo;contest everything&rdquo; by{' '}
+                <span className="font-mono text-white">
+                  {(defaultCostRow.efficiency_margin ?? 0) >= 0 ? '+' : ''}
+                  {(defaultCostRow.efficiency_margin ?? 0).toFixed(4)}
+                </span>{' '}
+                — a thin margin, published rather than hidden. As the cost of a
+                wasted filing rises, the per-dispute threshold starts to bind and
+                the gap widens sharply.
+              </p>
+            </div>
+            <div className="flex gap-1 rounded-lg border border-white/10 p-1">
+              {[
+                { key: 'efficiency', label: 'η' },
+                { key: 'yield', label: '₹' },
+              ].map((option) => (
+                <button
+                  key={option.key}
+                  type="button"
+                  onClick={() => setSweepMetric(option.key)}
+                  // A real 44x44 box rather than a projected hit area: these
+                  // two sit 4px apart, so projected areas would overlap and
+                  // each would block the other.
+                  className={clsx(
+                    'flex min-h-[44px] min-w-[44px] items-center justify-center rounded px-3 font-mono text-xs transition-colors',
+                    sweepMetric === option.key
+                      ? 'bg-white/10 text-white'
+                      : 'text-slateink/60 hover:text-white',
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="h-[220px] w-full sm:h-[260px] lg:h-[280px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={costSweep}
+                margin={{ top: 8, right: 16, bottom: 4, left: -6 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="2 4"
+                  stroke="rgba(148,163,184,0.10)"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="cost_inr"
+                  type="number"
+                  scale="log"
+                  domain={['dataMin', 'dataMax']}
+                  ticks={costSweep.map((r) => r.cost_inr)}
+                  tickFormatter={formatInrCompact}
+                  stroke={AXIS.stroke}
+                  tick={AXIS.tick}
+                  label={{
+                    value: 'representment cost c',
+                    position: 'insideBottom',
+                    offset: -2,
+                    fill: 'rgba(148,163,184,0.5)',
+                    fontSize: 9,
+                    fontFamily: 'JetBrains Mono',
+                  }}
+                />
+                <YAxis
+                  stroke={AXIS.stroke}
+                  tick={AXIS.tick}
+                  tickFormatter={
+                    sweepMetric === 'efficiency'
+                      ? (v) => v.toFixed(1)
+                      : formatInrCompact
+                  }
+                  width={sweepMetric === 'efficiency' ? 42 : 58}
+                />
+                <Tooltip
+                  contentStyle={TOOLTIP_STYLE}
+                  labelFormatter={(v) => `c = ${formatInr(v)}`}
+                  formatter={(value, name) => [
+                    sweepMetric === 'efficiency'
+                      ? value.toFixed(4)
+                      : formatInr(value),
+                    name.includes('ChargeGuard') ? 'ChargeGuard' : 'Contest everything',
+                  ]}
+                />
+                <ReferenceLine
+                  y={0}
+                  stroke="rgba(255,255,255,0.25)"
+                  strokeDasharray="3 3"
+                />
+                <ReferenceLine
+                  x={cfg.representment_cost_inr ?? 350}
+                  stroke="rgba(255,255,255,0.3)"
+                  strokeDasharray="3 3"
+                  label={{
+                    value: 'default',
+                    position: 'top',
+                    fill: 'rgba(255,255,255,0.55)',
+                    fontSize: 9,
+                    fontFamily: 'JetBrains Mono',
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey={
+                    sweepMetric === 'efficiency'
+                      ? 'ChargeGuard_efficiency'
+                      : 'ChargeGuard_net_yield_inr'
+                  }
+                  stroke="#62C6D7"
+                  strokeWidth={2.5}
+                  dot={{ r: 3, fill: '#62C6D7' }}
+                  isAnimationActive={false}
+                />
+                <Line
+                  type="monotone"
+                  dataKey={
+                    sweepMetric === 'efficiency'
+                      ? 'contest_all_efficiency'
+                      : 'contest_all_net_yield_inr'
+                  }
+                  stroke="#E58B84"
+                  strokeWidth={2}
+                  strokeDasharray="5 4"
+                  dot={{ r: 3, fill: '#E58B84' }}
+                  isAnimationActive={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-white/10 pt-3.5 text-xs">
+            <span className="flex items-center gap-2 text-slateink/70">
+              <span className="h-0.5 w-4 rounded-full bg-emerald" />
+              ChargeGuard
+            </span>
+            <span className="flex items-center gap-2 text-slateink/70">
+              <span className="h-0.5 w-4 rounded-full bg-coral" />
+              Contest everything
+            </span>
+            <span className="ml-auto text-slateink/50">
+              Indian acquirers commonly levy ₹500–₹1,500 per chargeback.
+            </span>
+          </div>
+        </motion.div>
+
+        {/* ---------------------------------------------------------------- */}
+        {/* Oracle efficiency vs baselines                                   */}
+        {/* ---------------------------------------------------------------- */}
+        <div className="mt-5 grid gap-5 lg:grid-cols-2">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="glass p-5"
+          >
+            <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
+              <h3 className="font-display text-base font-600 text-white">
+                Oracle efficiency at the default cost
+              </h3>
+              <span className="font-mono text-2xs text-slateink/50">
+                η = net yield / oracle
+              </span>
+            </div>
+            <p className="mb-4 text-xs leading-relaxed text-slateink/60">
+              The oracle has perfect foresight of every outcome and still pays{' '}
+              {formatInr(cfg.representment_cost_inr ?? 350)} per contest.
+            </p>
+
+            <div className="h-[220px] w-full sm:h-[240px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={efficiencyData}
+                  layout="vertical"
+                  margin={{ top: 4, right: 40, bottom: 4, left: 4 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="2 4"
+                    stroke="rgba(148,163,184,0.10)"
+                    horizontal={false}
+                  />
+                  <XAxis
+                    type="number"
+                    domain={[
+                      Math.min(0, ...efficiencyData.map((d) => d.efficiency)),
+                      1,
+                    ]}
+                    tickFormatter={(v) => v.toFixed(1)}
+                    stroke={AXIS.stroke}
+                    tick={AXIS.tick}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={132}
+                    stroke={AXIS.stroke}
+                    tick={{ ...AXIS.tick, fontSize: 9 }}
+                  />
+                  <Tooltip
+                    contentStyle={TOOLTIP_STYLE}
+                    cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+                    formatter={(v, _n, entry) => [
+                      `η ${v.toFixed(4)} · ${formatInr(entry.payload.yield)}`,
+                      'efficiency',
+                    ]}
+                  />
+                  <ReferenceLine x={0} stroke="rgba(255,255,255,0.25)" />
+                  <Bar
+                    dataKey="efficiency"
+                    radius={[0, 4, 4, 0]}
+                    isAnimationActive={false}
+                  >
+                    {efficiencyData.map((entry, index) => (
+                      <Cell
+                        key={index}
+                        fill={
+                          entry.isChargeGuard
+                            ? '#62C6D7'
+                            : entry.efficiency < 0
+                              ? 'rgba(249,115,98,0.6)'
+                              : 'rgba(148,163,184,0.4)'
+                        }
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
+
+          {/* Classifier metrics table */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.5, delay: 0.06, ease: [0.22, 1, 0.36, 1] }}
+            className="glass p-5"
+          >
+            <h3 className="font-display text-base font-600 text-white">
+              Classifier metrics
+            </h3>
+            <p className="mb-4 mt-1.5 text-xs leading-relaxed text-slateink/60">
+              Read recall, not precision, as the primary number. A false negative
+              on this corpus costs a median of{' '}
+              <span className="font-mono text-coral">
+                {(metrics.asymmetry?.median_fn_fp_ratio ?? 0).toFixed(1)}×
+              </span>{' '}
+              what a false positive costs.
+            </p>
+
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <MetricCell
+                label="Recall"
+                value={clf.recall.toFixed(4)}
+                tone="text-emerald"
+                hint="of winnable, contested"
+              />
+              <MetricCell
+                label="Precision"
+                value={clf.precision.toFixed(4)}
+                hint="of contested, won"
+              />
+              <MetricCell label="F1" value={clf.f1.toFixed(4)} />
+              <MetricCell label="ROC-AUC" value={clf.roc_auc.toFixed(4)} />
+              <MetricCell label="PR-AUC" value={clf.pr_auc.toFixed(4)} />
+              <MetricCell
+                label="Brier"
+                value={clf.brier.toFixed(4)}
+                hint="lower is better"
+              />
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-3 border-t border-white/10 pt-4">
+              <div>
+                <div className="eyebrow mb-1.5">Net yield</div>
+                <div className="font-mono text-lg text-emerald tabular">
+                  {formatInr(econ.net_yield_inr)}
+                </div>
+              </div>
+              <div>
+                <div className="eyebrow mb-1.5">Oracle ceiling</div>
+                <div className="font-mono text-lg text-slateink tabular">
+                  {formatInr(econ.oracle_yield_inr)}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* ---------------------------------------------------------------- */}
+        {/* Calibration and latency                                          */}
+        {/* ---------------------------------------------------------------- */}
+        <div className="mt-5 grid gap-5 lg:grid-cols-2">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <CalibrationCurve
+              points={metrics.reliability_curve}
+              brier={clf.brier}
+              ece={clf.ece}
+              effect={cal}
+            />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.5, delay: 0.06, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <LatencyHistogram
+              latency={metrics.latency_ms}
+              slaMs={cfg.latency_sla_ms ?? 200}
+            />
+          </motion.div>
+        </div>
+
+        {/* ---------------------------------------------------------------- */}
+        {/* Gate activity and segment audit                                  */}
+        {/* ---------------------------------------------------------------- */}
+        <div className="mt-5 grid gap-5 lg:grid-cols-2">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="glass p-5"
+          >
+            <h3 className="font-display text-base font-600 text-white">
+              What decided each dispute
+            </h3>
+            <p className="mb-4 mt-1.5 text-xs leading-relaxed text-slateink/60">
+              <span className="text-white">fired</span> counts every time a
+              gate&rsquo;s precondition was met.{' '}
+              <span className="text-white">decided</span> counts only when it was
+              first to fire. The gap is earlier gates pre-empting later ones.
+            </p>
+
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-white/10">
+                  <th className="pb-2 text-left font-mono text-2xs font-400 uppercase tracking-wider text-slateink/50">
+                    gate
+                  </th>
+                  <th className="pb-2 text-right font-mono text-2xs font-400 uppercase tracking-wider text-slateink/50">
+                    fired
+                  </th>
+                  <th className="pb-2 text-right font-mono text-2xs font-400 uppercase tracking-wider text-slateink/50">
+                    decided
+                  </th>
+                  <th className="pb-2 text-right font-mono text-2xs font-400 uppercase tracking-wider text-slateink/50">
+                    share
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {gateActivity.map((row) => (
+                  <tr key={row.gate} className="border-b border-white/[0.05]">
+                    <td className="py-2">
+                      <code
+                        className={clsx(
+                          'font-mono text-[10px]',
+                          row.gate === 'EV_RULE'
+                            ? 'text-emerald'
+                            : 'text-slateink/85',
+                        )}
+                      >
+                        {row.gate}
+                      </code>
+                    </td>
+                    <td className="py-2 text-right font-mono text-slateink/60 tabular">
+                      {row.fired.toLocaleString('en-IN')}
+                    </td>
+                    <td className="py-2 text-right font-mono text-white tabular">
+                      {row.decided.toLocaleString('en-IN')}
+                    </td>
+                    <td className="py-2 text-right font-mono text-slateink/60 tabular">
+                      {formatPercent(row.decided_share, 1)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </motion.div>
+
+          {/* The segment audit: what each hard ACCEPT gate gives up. */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.5, delay: 0.06, ease: [0.22, 1, 0.36, 1] }}
+            className="glass p-5"
+          >
+            <h3 className="font-display text-base font-600 text-white">
+              What each hard ACCEPT gate gives up
+            </h3>
+            <p className="mb-4 mt-1.5 text-xs leading-relaxed text-slateink/60">
+              Realised win rate inside each force-accepted segment, and the
+              expected value a blanket contest would have produced. A{' '}
+              <span className="text-coral">positive</span> figure means that gate
+              costs money.
+            </p>
+
+            <ul className="space-y-2.5">
+              {segments.map((segment) => {
+                const destructive = segment.blanket_contest_ev_inr > 0;
+                return (
+                  <li
+                    key={segment.segment}
+                    className={clsx(
+                      'rounded-lg border p-3',
+                      destructive
+                        ? 'border-coral/30 bg-coral-dim'
+                        : 'border-white/[0.08] bg-white/[0.02]',
+                    )}
+                  >
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <span className="text-xs text-white">
+                        {segment.segment}
+                      </span>
+                      <span
+                        className={clsx(
+                          'font-mono text-xs tabular',
+                          destructive ? 'text-coral' : 'text-emerald',
+                        )}
+                      >
+                        {segment.blanket_contest_ev_inr >= 0 ? '+' : ''}
+                        {formatInr(segment.blanket_contest_ev_inr)}
+                      </span>
+                    </div>
+                    <div className="mt-1 flex flex-wrap gap-x-4 font-mono text-[10px] text-slateink/50">
+                      <span>n = {segment.n.toLocaleString('en-IN')}</span>
+                      <span>win {formatPercent(segment.win_rate, 1)}</span>
+                      <span>
+                        mean {formatInr(segment.mean_amount_inr)}
+                      </span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </motion.div>
+        </div>
+
+        {/* ---------------------------------------------------------------- */}
+        {/* Model card                                                       */}
+        {/* ---------------------------------------------------------------- */}
+        <ModelCardPanel />
+
+        {/* ---------------------------------------------------------------- */}
+        {/* The honest note                                                  */}
+        {/* ---------------------------------------------------------------- */}
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="glass mt-5 p-5"
+        >
+          <div className="flex items-start gap-3">
+            <AlertCircle size={16} className="mt-0.5 shrink-0 text-slateink/50" />
+            <div className="min-w-0">
+              <p className="text-sm leading-relaxed text-slateink/75 text-pretty">
+                <span className="text-white">
+                  These metrics are on synthetic held-out data.
+                </span>{' '}
+                The corpus is generated by a documented latent process, and the
+                generator is in the repository at{' '}
+                <code className="font-mono text-2xs text-slateink">
+                  backend/data_gen/generator.py
+                </code>{' '}
+                for inspection. Two drivers of the outcome — an unobservable
+                friendly-fraud indicator and a Normal noise term — appear in no
+                feature, which places a hard ceiling on achievable AUC. That is
+                deliberate: a generator whose features determined its labels
+                would report near-perfect discrimination and prove only that the
+                author wrote both sides of the exam.
+              </p>
+              <p className="mt-3 text-sm leading-relaxed text-slateink/75 text-pretty">
+                One argument η does not capture:{' '}
+                <span className="text-white">
+                  &ldquo;contest everything&rdquo; is not a deployable policy at
+                  any efficiency.
+                </span>{' '}
+                Card schemes run representment monitoring programmes, and a
+                merchant filing 100% of disputes at a{' '}
+                {formatPercent(clf.precision, 0)} success rate attracts
+                excessive-representment scrutiny. That constraint is qualitative,
+                it is modelled nowhere in this harness, and it is flagged here
+                rather than quietly folded into a number.
+              </p>
+              <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-1.5 border-t border-white/10 pt-3.5 font-mono text-[10px] text-slateink/45">
+                <span>generated {metrics.generated_at?.slice(0, 19)}Z</span>
+                <span>model {cfg.model_version}</span>
+                <span>features {cfg.feature_version}</span>
+                <span>
+                  c = {formatInr(cfg.representment_cost_inr)} · λ ={' '}
+                  {cfg.risk_margin}
+                </span>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
