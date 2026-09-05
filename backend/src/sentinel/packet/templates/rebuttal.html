@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Representment {{ dispute.dispute_id }}</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm 20mm 16mm; }
+
+  :root {
+    --ink:    #14181f;
+    --muted:  #5b6472;
+    --rule:   #d4d9e0;
+    --accent: #0f6b4f;
+    --panel:  #f5f7f9;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10pt;
+    line-height: 1.5;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  /* ---------- masthead ---------- */
+  .masthead {
+    border-bottom: 2.5pt solid var(--accent);
+    padding-bottom: 8pt;
+    margin-bottom: 14pt;
+  }
+  .masthead h1 {
+    font-size: 15pt;
+    letter-spacing: 0.4pt;
+    margin: 0 0 2pt 0;
+    text-transform: uppercase;
+  }
+  .masthead .sub {
+    font-size: 8.5pt;
+    color: var(--muted);
+    letter-spacing: 0.3pt;
+  }
+
+  /* ---------- key-value header block ---------- */
+  table.kv { width: 100%; border-collapse: collapse; margin-bottom: 14pt; }
+  table.kv td { padding: 2.5pt 0; vertical-align: top; font-size: 9.5pt; }
+  table.kv td.k {
+    width: 30%;
+    color: var(--muted);
+    text-transform: uppercase;
+    font-size: 8pt;
+    letter-spacing: 0.4pt;
+    padding-right: 8pt;
+  }
+  table.kv td.v { font-weight: 600; }
+  .amount { color: var(--accent); font-size: 12pt; font-weight: 700; }
+
+  /* ---------- sections ---------- */
+  section { margin-bottom: 13pt; }
+  h2 {
+    font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 0.7pt;
+    color: var(--accent);
+    border-bottom: 0.6pt solid var(--rule);
+    padding-bottom: 3pt;
+    margin: 0 0 6pt 0;
+  }
+  p { margin: 0 0 6pt 0; text-align: justify; }
+
+  .compelling {
+    background: var(--panel);
+    border-left: 2.5pt solid var(--accent);
+    padding: 8pt 10pt;
+  }
+
+  /* ---------- artifact index ---------- */
+  table.artifacts { width: 100%; border-collapse: collapse; font-size: 9pt; }
+  table.artifacts th {
+    text-align: left;
+    background: var(--panel);
+    color: var(--muted);
+    text-transform: uppercase;
+    font-size: 7.5pt;
+    letter-spacing: 0.4pt;
+    padding: 4pt 6pt;
+    border-bottom: 0.6pt solid var(--rule);
+  }
+  table.artifacts td {
+    padding: 4pt 6pt;
+    border-bottom: 0.4pt solid var(--rule);
+    vertical-align: top;
+  }
+  table.artifacts td.id {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 8pt;
+    white-space: nowrap;
+  }
+  .cited {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-size: 7pt;
+    padding: 1pt 4pt;
+    border-radius: 2pt;
+    letter-spacing: 0.3pt;
+  }
+  .uncited { color: var(--muted); font-size: 7.5pt; }
+
+  /* ---------- footer ---------- */
+  .footer {
+    margin-top: 16pt;
+    padding-top: 7pt;
+    border-top: 0.6pt solid var(--rule);
+    font-size: 7.5pt;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+  .footer .prov { font-family: "Courier New", Courier, monospace; }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <h1>Merchant Representment</h1>
+  <div class="sub">
+    Submitted in response to chargeback {{ dispute.dispute_id }}
+    &middot; {{ dispute.network }} {{ dispute.reason_code }}
+  </div>
+</div>
+
+<table class="kv">
+  <tr>
+    <td class="k">Dispute reference</td>
+    <td class="v">{{ dispute.dispute_id }}</td>
+    <td class="k">Date raised</td>
+    <td class="v">{{ dispute.disputed_at.strftime('%d %B %Y') }}</td>
+  </tr>
+  <tr>
+    <td class="k">Transaction</td>
+    <td class="v">{{ dispute.transaction_id }}</td>
+    <td class="k">Respond by</td>
+    <td class="v">{{ dispute.respond_by.strftime('%d %B %Y') }}</td>
+  </tr>
+  <tr>
+    <td class="k">Merchant account</td>
+    <td class="v">{{ dispute.merchant_id }}</td>
+    <td class="k">Order reference</td>
+    <td class="v">{{ bundle.order.order_id }}</td>
+  </tr>
+  <tr>
+    <td class="k">Reason code</td>
+    <td class="v">{{ dispute.reason_code }}</td>
+    <td class="k">Amount disputed</td>
+    <td class="v amount">INR {{ '{:,.2f}'.format(dispute.amount_inr) }}</td>
+  </tr>
+</table>
+
+<section>
+  <h2>1 &middot; Case summary</h2>
+  <p>{{ draft.summary }}</p>
+</section>
+
+<section>
+  <h2>2 &middot; Compelling evidence</h2>
+  <div class="compelling">
+    <p>{{ draft.evidence_narrative }}</p>
+  </div>
+</section>
+
+<section>
+  <h2>3 &middot; Scheme argument &mdash; {{ dispute.reason_code }}</h2>
+  <p>{{ draft.scheme_argument }}</p>
+</section>
+
+<section>
+  <h2>4 &middot; Artifact index</h2>
+  <table class="artifacts">
+    <thead>
+      <tr>
+        <th style="width:38%">Identifier</th>
+        <th style="width:44%">Description</th>
+        <th style="width:18%">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for artifact in artifacts %}
+      <tr>
+        <td class="id">{{ artifact.identifier }}</td>
+        <td>{{ artifact.description }}</td>
+        <td>
+          {% if artifact.cited %}
+            <span class="cited">CITED</span>
+          {% else %}
+            <span class="uncited">held, not cited</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>5 &middot; Merchant declaration</h2>
+  <p>
+    The merchant confirms that the records referenced above are contemporaneous
+    business records held in the ordinary course of trade, and that no artifact
+    referenced in this filing has been created for the purpose of this dispute.
+    Original documents are available to the issuer on request.
+  </p>
+</section>
+
+<div class="footer">
+  Generated {{ generated_at.strftime('%d %B %Y at %H:%M UTC') }} by ChargeGuard.AI.
+  Narrative source: <span class="prov">{{ source }}</span>{% if fallback_reason %}
+  (fallback: {{ fallback_reason }}){% endif %}.
+  Every artifact identifier in section 4 was verified against the evidence
+  bundle before rendering; citations to artifacts not held are rejected and the
+  draft is regenerated deterministically.
+  <br>
+  This document contains no automated assessment of the dispute's merits. The
+  decision to file was made separately and is recorded in the merchant's audit
+  log under dispute {{ dispute.dispute_id }}.
+</div>
+
+</body>
+</html>

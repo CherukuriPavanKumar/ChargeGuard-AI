@@ -1,0 +1,569 @@
+{
+  "generated_at": "2026-09-05T11:49:15.543974+00:00",
+  "test_set_size": 5000,
+  "classifier": {
+    "precision": 0.607235,
+    "recall": 0.781596,
+    "f1": 0.683471,
+    "pr_auc": 0.70866,
+    "roc_auc": 0.832057,
+    "brier": 0.158031,
+    "ece": 0.023426
+  },
+  "reliability_curve": [
+    {
+      "predicted": 0.082807,
+      "observed": 0.041166,
+      "count": 583
+    },
+    {
+      "predicted": 0.138612,
+      "observed": 0.105185,
+      "count": 1350
+    },
+    {
+      "predicted": 0.248422,
+      "observed": 0.249123,
+      "count": 570
+    },
+    {
+      "predicted": 0.350426,
+      "observed": 0.345708,
+      "count": 431
+    },
+    {
+      "predicted": 0.449589,
+      "observed": 0.443902,
+      "count": 410
+    },
+    {
+      "predicted": 0.551965,
+      "observed": 0.589109,
+      "count": 404
+    },
+    {
+      "predicted": 0.654535,
+      "observed": 0.690058,
+      "count": 513
+    },
+    {
+      "predicted": 0.746243,
+      "observed": 0.756554,
+      "count": 534
+    },
+    {
+      "predicted": 0.845,
+      "observed": 0.82439,
+      "count": 205
+    }
+  ],
+  "economics": {
+    "net_yield_inr": 6597393.18,
+    "oracle_yield_inr": 7671352.25,
+    "oracle_efficiency": 0.860004,
+    "fp_cost_inr": 319200.0,
+    "fn_cost_inr": 754759.07,
+    "fp_fn_ratio": 2.364533,
+    "n_contested": 2322,
+    "contest_rate": 0.4644
+  },
+  "baselines": [
+    {
+      "name": "Contest nothing",
+      "net_yield_inr": 0.0,
+      "oracle_yield_inr": 7671352.25,
+      "oracle_efficiency": 0.0,
+      "fp_cost_inr": 0.0,
+      "fn_cost_inr": 7671352.25,
+      "fp_fn_ratio": 0.0,
+      "n_contested": 0,
+      "n_total": 5000,
+      "contest_rate": 0.0
+    },
+    {
+      "name": "Contest everything",
+      "net_yield_inr": 6545391.43,
+      "oracle_yield_inr": 7671352.25,
+      "oracle_efficiency": 0.853225,
+      "fp_cost_inr": 1118600.0,
+      "fn_cost_inr": 0.0,
+      "fp_fn_ratio": 0.0,
+      "n_contested": 5000,
+      "n_total": 5000,
+      "contest_rate": 1.0
+    },
+    {
+      "name": "Fixed threshold (>= INR 5,000)",
+      "net_yield_inr": 5142158.91,
+      "oracle_yield_inr": 7671352.25,
+      "oracle_efficiency": 0.670307,
+      "fp_cost_inr": 273700.0,
+      "fn_cost_inr": 2255493.34,
+      "fp_fn_ratio": 8.24075,
+      "n_contested": 1263,
+      "n_total": 5000,
+      "contest_rate": 0.2526
+    },
+    {
+      "name": "Evidence heuristic (POD + signature)",
+      "net_yield_inr": 3274916.9,
+      "oracle_yield_inr": 7671352.25,
+      "oracle_efficiency": 0.426902,
+      "fp_cost_inr": 269850.0,
+      "fn_cost_inr": 4123247.12,
+      "fp_fn_ratio": 15.279774,
+      "n_contested": 1649,
+      "n_total": 5000,
+      "contest_rate": 0.3298
+    }
+  ],
+  "latency_ms": {
+    "p50": 0.4471,
+    "p95": 1.7289,
+    "p99": 2.9817,
+    "n": 1000,
+    "histogram": [
+      {
+        "bin_start": 0.3831,
+        "bin_end": 0.5265,
+        "bin_mid": 0.4548,
+        "count": 766
+      },
+      {
+        "bin_start": 0.5265,
+        "bin_end": 0.6698,
+        "bin_mid": 0.5981,
+        "count": 98
+      },
+      {
+        "bin_start": 0.6698,
+        "bin_end": 0.8132,
+        "bin_mid": 0.7415,
+        "count": 20
+      },
+      {
+        "bin_start": 0.8132,
+        "bin_end": 0.9565,
+        "bin_mid": 0.8849,
+        "count": 10
+      },
+      {
+        "bin_start": 0.9565,
+        "bin_end": 1.0999,
+        "bin_mid": 1.0282,
+        "count": 11
+      },
+      {
+        "bin_start": 1.0999,
+        "bin_end": 1.2433,
+        "bin_mid": 1.1716,
+        "count": 9
+      },
+      {
+        "bin_start": 1.2433,
+        "bin_end": 1.3866,
+        "bin_mid": 1.3149,
+        "count": 12
+      },
+      {
+        "bin_start": 1.3866,
+        "bin_end": 1.53,
+        "bin_mid": 1.4583,
+        "count": 10
+      },
+      {
+        "bin_start": 1.53,
+        "bin_end": 1.6734,
+        "bin_mid": 1.6017,
+        "count": 6
+      },
+      {
+        "bin_start": 1.6734,
+        "bin_end": 1.8167,
+        "bin_mid": 1.745,
+        "count": 18
+      },
+      {
+        "bin_start": 1.8167,
+        "bin_end": 1.9601,
+        "bin_mid": 1.8884,
+        "count": 5
+      },
+      {
+        "bin_start": 1.9601,
+        "bin_end": 2.1034,
+        "bin_mid": 2.0318,
+        "count": 8
+      },
+      {
+        "bin_start": 2.1034,
+        "bin_end": 2.2468,
+        "bin_mid": 2.1751,
+        "count": 3
+      },
+      {
+        "bin_start": 2.2468,
+        "bin_end": 2.3902,
+        "bin_mid": 2.3185,
+        "count": 2
+      },
+      {
+        "bin_start": 2.3902,
+        "bin_end": 2.5335,
+        "bin_mid": 2.4618,
+        "count": 4
+      },
+      {
+        "bin_start": 2.5335,
+        "bin_end": 2.6769,
+        "bin_mid": 2.6052,
+        "count": 1
+      },
+      {
+        "bin_start": 2.6769,
+        "bin_end": 2.8202,
+        "bin_mid": 2.7486,
+        "count": 3
+      },
+      {
+        "bin_start": 2.8202,
+        "bin_end": 2.9636,
+        "bin_mid": 2.8919,
+        "count": 2
+      },
+      {
+        "bin_start": 2.9636,
+        "bin_end": 3.107,
+        "bin_mid": 3.0353,
+        "count": 3
+      },
+      {
+        "bin_start": 3.107,
+        "bin_end": 3.2503,
+        "bin_mid": 3.1786,
+        "count": 1
+      },
+      {
+        "bin_start": 3.2503,
+        "bin_end": 3.3937,
+        "bin_mid": 3.322,
+        "count": 3
+      },
+      {
+        "bin_start": 3.3937,
+        "bin_end": 3.537,
+        "bin_mid": 3.4654,
+        "count": 2
+      },
+      {
+        "bin_start": 3.537,
+        "bin_end": 3.6804,
+        "bin_mid": 3.6087,
+        "count": 1
+      },
+      {
+        "bin_start": 3.6804,
+        "bin_end": 3.8238,
+        "bin_mid": 3.7521,
+        "count": 1
+      },
+      {
+        "bin_start": 3.8238,
+        "bin_end": 3.9671,
+        "bin_mid": 3.8954,
+        "count": 0
+      },
+      {
+        "bin_start": 3.9671,
+        "bin_end": 4.1105,
+        "bin_mid": 4.0388,
+        "count": 0
+      },
+      {
+        "bin_start": 4.1105,
+        "bin_end": 4.2538,
+        "bin_mid": 4.1822,
+        "count": 0
+      },
+      {
+        "bin_start": 4.2538,
+        "bin_end": 4.3972,
+        "bin_mid": 4.3255,
+        "count": 1
+      }
+    ],
+    "mean": 0.6145,
+    "max": 4.3972
+  },
+  "config": {
+    "representment_cost_inr": 350.0,
+    "risk_margin": 1.2,
+    "feature_version": "v1",
+    "model_version": "lgbm-v1-21767989f402",
+    "latency_sla_ms": 200.0
+  },
+  "calibration_effect": {
+    "mode": "identity",
+    "selection": {
+      "brier_before": 0.169563,
+      "brier_after": 0.170095,
+      "ece_before": 0.025382,
+      "ece_after": 0.035442,
+      "n_calibration_rows": 11250,
+      "mode": "identity",
+      "n_selection_rows": 1875,
+      "selection_criterion": "held-out Brier score on the calib fold"
+    },
+    "brier_raw": 0.158031,
+    "ece_raw": 0.023426,
+    "brier_isotonic": 0.15783,
+    "ece_isotonic": 0.013882,
+    "brier_shipped": 0.158031,
+    "ece_shipped": 0.023426
+  },
+  "asymmetry": {
+    "cost_inr": 350.0,
+    "share_above_2c": 0.8736,
+    "mean_fn_fp_ratio": 11.3431,
+    "median_fn_fp_ratio": 6.0383,
+    "max_fn_fp_ratio": 227.5714
+  },
+  "lambda_sweep": [
+    {
+      "risk_margin": 1.0,
+      "net_yield_inr": 6601230.83,
+      "oracle_efficiency": 0.860504,
+      "contest_rate": 0.4826,
+      "is_default": false
+    },
+    {
+      "risk_margin": 1.1,
+      "net_yield_inr": 6603155.0,
+      "oracle_efficiency": 0.860755,
+      "contest_rate": 0.4724,
+      "is_default": false
+    },
+    {
+      "risk_margin": 1.2,
+      "net_yield_inr": 6597393.18,
+      "oracle_efficiency": 0.860004,
+      "contest_rate": 0.4644,
+      "is_default": true
+    },
+    {
+      "risk_margin": 1.3,
+      "net_yield_inr": 6600295.21,
+      "oracle_efficiency": 0.860382,
+      "contest_rate": 0.4556,
+      "is_default": false
+    },
+    {
+      "risk_margin": 1.5,
+      "net_yield_inr": 6596216.81,
+      "oracle_efficiency": 0.859851,
+      "contest_rate": 0.4394,
+      "is_default": false
+    },
+    {
+      "risk_margin": 1.75,
+      "net_yield_inr": 6564835.03,
+      "oracle_efficiency": 0.85576,
+      "contest_rate": 0.4226,
+      "is_default": false
+    },
+    {
+      "risk_margin": 2.0,
+      "net_yield_inr": 6540760.93,
+      "oracle_efficiency": 0.852622,
+      "contest_rate": 0.4102,
+      "is_default": false
+    }
+  ],
+  "cost_sweep": [
+    {
+      "cost_inr": 150.0,
+      "ChargeGuard_net_yield_inr": 7102747.81,
+      "ChargeGuard_efficiency": 0.8851,
+      "contest_all_net_yield_inr": 7545391.43,
+      "contest_all_efficiency": 0.940259,
+      "efficiency_margin": -0.055159,
+      "yield_margin_inr": -442643.62,
+      "contest_rate": 0.5306,
+      "is_default": false
+    },
+    {
+      "cost_inr": 350.0,
+      "ChargeGuard_net_yield_inr": 6597393.18,
+      "ChargeGuard_efficiency": 0.860004,
+      "contest_all_net_yield_inr": 6545391.43,
+      "contest_all_efficiency": 0.853225,
+      "efficiency_margin": 0.006779,
+      "yield_margin_inr": 52001.75,
+      "contest_rate": 0.4644,
+      "is_default": true
+    },
+    {
+      "cost_inr": 600.0,
+      "ChargeGuard_net_yield_inr": 6035441.18,
+      "ChargeGuard_efficiency": 0.832427,
+      "contest_all_net_yield_inr": 5295391.43,
+      "contest_all_efficiency": 0.730357,
+      "efficiency_margin": 0.10207,
+      "yield_margin_inr": 740049.75,
+      "contest_rate": 0.3966,
+      "is_default": false
+    },
+    {
+      "cost_inr": 1000.0,
+      "ChargeGuard_net_yield_inr": 5214036.52,
+      "ChargeGuard_efficiency": 0.785457,
+      "contest_all_net_yield_inr": 3295391.43,
+      "contest_all_efficiency": 0.496427,
+      "efficiency_margin": 0.28903,
+      "yield_margin_inr": 1918645.09,
+      "contest_rate": 0.3122,
+      "is_default": false
+    },
+    {
+      "cost_inr": 1500.0,
+      "ChargeGuard_net_yield_inr": 4439510.03,
+      "ChargeGuard_efficiency": 0.744773,
+      "contest_all_net_yield_inr": 795391.43,
+      "contest_all_efficiency": 0.133435,
+      "efficiency_margin": 0.611338,
+      "yield_margin_inr": 3644118.6,
+      "contest_rate": 0.2428,
+      "is_default": false
+    },
+    {
+      "cost_inr": 2500.0,
+      "ChargeGuard_net_yield_inr": 3325740.13,
+      "ChargeGuard_efficiency": 0.68214,
+      "contest_all_net_yield_inr": -4204608.57,
+      "contest_all_efficiency": -0.862404,
+      "efficiency_margin": 1.544544,
+      "yield_margin_inr": 7530348.7,
+      "contest_rate": 0.1572,
+      "is_default": false
+    }
+  ],
+  "segments": [
+    {
+      "segment": "fraud code, no liability shift",
+      "n": 958,
+      "share": 0.1916,
+      "win_rate": 0.073069,
+      "mean_amount_inr": 4411.02,
+      "blanket_contest_ev_inr": -27.69,
+      "ChargeGuard_contest_rate": 0.0
+    },
+    {
+      "segment": "non-receipt, POD absent",
+      "n": 894,
+      "share": 0.1788,
+      "win_rate": 0.123043,
+      "mean_amount_inr": 3989.4,
+      "blanket_contest_ev_inr": 140.87,
+      "ChargeGuard_contest_rate": 0.0
+    },
+    {
+      "segment": "amount at or below cost",
+      "n": 195,
+      "share": 0.039,
+      "win_rate": 0.328205,
+      "mean_amount_inr": 244.43,
+      "blanket_contest_ev_inr": -269.78,
+      "ChargeGuard_contest_rate": 0.0
+    },
+    {
+      "segment": "representment window expired",
+      "n": 106,
+      "share": 0.0212,
+      "win_rate": 0.0,
+      "mean_amount_inr": 3813.65,
+      "blanket_contest_ev_inr": -350.0,
+      "ChargeGuard_contest_rate": 0.0
+    },
+    {
+      "segment": "credit code with refund on record",
+      "n": 225,
+      "share": 0.045,
+      "win_rate": 0.08,
+      "mean_amount_inr": 1984.87,
+      "blanket_contest_ev_inr": -191.21,
+      "ChargeGuard_contest_rate": 0.0
+    }
+  ],
+  "gate_activity": [
+    {
+      "gate": "amount_below_cost",
+      "fired": 195,
+      "decided": 195,
+      "decided_share": 0.039
+    },
+    {
+      "gate": "expired_window",
+      "fired": 106,
+      "decided": 104,
+      "decided_share": 0.0208
+    },
+    {
+      "gate": "credit_already_processed",
+      "fired": 225,
+      "decided": 196,
+      "decided_share": 0.0392
+    },
+    {
+      "gate": "no_pod_on_non_receipt",
+      "fired": 894,
+      "decided": 840,
+      "decided_share": 0.168
+    },
+    {
+      "gate": "fraud_without_liability_shift",
+      "fired": 958,
+      "decided": 921,
+      "decided_share": 0.1842
+    },
+    {
+      "gate": "strong_evidence",
+      "fired": 803,
+      "decided": 612,
+      "decided_share": 0.1224
+    },
+    {
+      "gate": "EV_RULE",
+      "fired": 2132,
+      "decided": 2132,
+      "decided_share": 0.4264
+    }
+  ],
+  "confusion": {
+    "tp": 1410,
+    "fp": 912,
+    "fn": 394,
+    "tn": 2284
+  },
+  "seeds": {
+    "MASTER_SEED": 20260227,
+    "DISPUTE_SEED": 20260328,
+    "LATENT_SEED": 20260429,
+    "OBSERVATION_SEED": 20260530,
+    "IDENTITY_SEED": 20260631,
+    "SPLIT_SEED": 20260732,
+    "POD_RENDER_SEED": 20260833,
+    "TRAIN_SEED": 20260934,
+    "BENCH_SEED": 20261035
+  },
+  "provenance": {
+    "git_sha": "49f2e9dc8a30-dirty",
+    "master_seed": 20260227,
+    "split_seed": 20260732,
+    "test_set_size": 5000,
+    "model_version": "lgbm-v1-21767989f402",
+    "feature_version": "v1",
+    "corpus_epoch": "2026-02-27T00:00:00+00:00",
+    "content_sha256": "f12e804571f1415bbef0c8a68287caf9299f969758e0ae70cd0d08b37d590983",
+    "digest_note": "SHA-256 over the canonical JSON of every field except generated_at, latency_ms and provenance -- the three that are legitimately run- or machine-dependent. Reproduce with `make verify`."
+  }
+}

@@ -1,0 +1,40 @@
+/**
+ * Shared chrome for the four post-hero spatial sections (neural lattice,
+ * economic sandtable, dossier assembly, attack simulator).
+ *
+ * One glass treatment, one perspective convention, so the sections read as a
+ * continuation of the hero's 3D language rather than four separately-designed
+ * widgets bolted after it. Backface-visibility is set everywhere a plate-like
+ * face can rotate past 90deg, for the same reason it is load-bearing in the
+ * hero: without it, rotated text renders mirrored rather than simply hidden.
+ */
+
+.spatial-glass {
+  background: #12232d;
+  border: 1px solid rgba(174, 191, 199, 0.18);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+}
+
+.spatial-viewport {
+  perspective: 1400px;
+  perspective-origin: 50% 40%;
+}
+
+.spatial-rig {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform;
+}
+
+.spatial-node {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease, box-shadow 0.25s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spatial-rig {
+    transform: none !important;
+  }
+}

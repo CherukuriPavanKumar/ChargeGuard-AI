@@ -1,0 +1,199 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --page: #0b1720;
+    --surface: #12232d;
+    --surface-raised: #19313c;
+    --line: rgba(174, 191, 199, 0.18);
+    --ink: #edf5f7;
+    --muted: #aebfc7;
+    --accent: #62c6d7;
+    --signal: #f0b66e;
+    --negative: #e58b84;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-obsidian font-body text-slateink antialiased;
+    background-image: linear-gradient(180deg, rgba(98, 198, 215, 0.045), transparent 24rem);
+  }
+
+  /* Every numeric readout uses tabular figures. Without this, a value
+     animating from 0.19 to 0.87 changes width on almost every frame and the
+     surrounding layout visibly twitches. */
+  .tabular,
+  code,
+  pre,
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+
+  /* Apply to any monospaced data value -- telemetry, formulas, live numeric
+     readouts -- so a figure animating from 0.19 to 0.87 doesn't visibly
+     twitch the layout around it as its digit width changes. */
+  .font-tnum {
+    font-feature-settings: 'tnum' on;
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::selection {
+    background: rgba(98, 198, 215, 0.28);
+    color: #edf5f7;
+  }
+
+  /* Scrollbar, dark-matched so it does not flash white on overflow panes. */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.18);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.32);
+    background-clip: content-box;
+  }
+
+  :focus-visible {
+    outline: 2px solid rgba(16, 185, 129, 0.7);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  /* The one glass treatment, defined once. Every raised panel in the site uses
+     it so surfaces read as a single material rather than a collection of
+     slightly different cards. */
+  .glass {
+    @apply rounded-xl border bg-surface;
+    border-color: var(--line);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+  }
+
+  .eyebrow {
+    @apply font-mono text-2xs uppercase tracking-[0.18em] text-slateink/70;
+  }
+
+  /* Project a 44x44 hit area from the centre of a small control without
+     changing its box.
+     A 24px toggle or a 15px text button cannot simply be grown to 44px --
+     it would break the line it sits on. This keeps the visual size and makes
+     the *target* 44px, which is what the guideline is actually about. */
+  .tap-44 {
+    position: relative;
+  }
+  .tap-44::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 100%;
+    height: 100%;
+    min-width: 44px;
+    min-height: 44px;
+    transform: translate(-50%, -50%);
+  }
+
+  .rule {
+    @apply h-px w-full bg-white/10;
+  }
+
+  /* Loading skeleton. A shimmer sweep rather than a spinner: a spinner says
+     "something is happening somewhere", a skeleton says "this specific block is
+     about to contain content", and it reserves the space so nothing shifts when
+     the content lands. */
+  .skeleton {
+    @apply relative overflow-hidden rounded-lg bg-white/[0.035];
+  }
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.06),
+      transparent
+    );
+    transform: translateX(-100%);
+    animation: skeleton-sweep 1.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+
+  @keyframes skeleton-sweep {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  /* Range inputs are styled by hand because the native control cannot be
+     restyled consistently across engines, and the arbitrage sliders are the
+     primary interaction on the page. */
+  .slider {
+    @apply h-1.5 w-full cursor-pointer appearance-none rounded-full bg-white/10;
+    /* A 6px track is a 6px target. Padding the box to a full 44px gives a
+       thumb-sized hit area; `background-clip: content-box` keeps the visible
+       track at 6px, and the negative margin removes the padding from flow so
+       surrounding rhythm is unchanged. */
+    padding-block: 19px;
+    background-clip: content-box;
+    margin-block: -19px;
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+  .slider::-webkit-slider-thumb {
+    @apply h-5 w-5 appearance-none rounded-full border-2 border-obsidian bg-emerald sm:h-4 sm:w-4;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.18);
+    transition: box-shadow 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .slider::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 0 7px rgba(16, 185, 129, 0.26);
+  }
+  .slider::-moz-range-thumb {
+    @apply h-5 w-5 rounded-full border-2 border-obsidian bg-emerald sm:h-4 sm:w-4;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.18);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+  .grid-lines {
+    background-image: none;
+  }
+}
+
+/* Accessibility: the site must be fully usable with reduced motion.
+   Everything below is presentation only -- no content is revealed by an
+   animation, so disabling them all costs nothing but the flourish. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
