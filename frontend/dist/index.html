@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#030712" />
+
+    <title>ChargeGuard.AI — Chargeback Arbitrage Engine</title>
+    <meta
+      name="description"
+      content="A dispute is worth contesting only when expected recovery beats representment cost. ChargeGuard.AI decides which chargebacks to fight — per dispute — assembles scheme-compliant evidence, and proves its value on held-out data."
+    />
+
+    <!-- Open Graph / Twitter. og.png is rendered from ArbitrageFrontierStatic. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ChargeGuard.AI — Chargeback Arbitrage Engine" />
+    <meta
+      property="og:description"
+      content="Contest a dispute only when p ≥ λc/A. Per-dispute economics, calibrated probabilities, and honest held-out metrics."
+    />
+    <meta property="og:image" content="/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ChargeGuard.AI — Chargeback Arbitrage Engine" />
+    <meta
+      name="twitter:description"
+      content="Contest a dispute only when p ≥ λc/A. Per-dispute economics, calibrated probabilities, and honest held-out metrics."
+    />
+    <meta name="twitter:image" content="/og.png" />
+
+    <!-- Fonts, loaded without blocking first paint: the stylesheet is fetched as
+         a preload and promoted to a stylesheet on load, so text renders in the
+         fallback stack immediately and swaps when the webfonts arrive
+         (display=swap). A judge on a slow or offline connection still gets a
+         fully legible page. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      />
+    </noscript>
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <script type="module" crossorigin src="/assets/index-DyeVboRR.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/motion-DaUpJ-T_.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-CCMzUxg4.css">
+  </head>
+  <body class="bg-obsidian">
+    <div id="root"></div>
+    <noscript>
+      <div style="padding: 3rem; color: #94a3b8; font-family: system-ui, sans-serif">
+        <h1 style="color: #10b981">ChargeGuard.AI</h1>
+        <p>
+          This page renders an interactive simulator and evaluation dashboard, and
+          needs JavaScript. The underlying evidence does not: the held-out
+          evaluation report is committed to the repository at
+          <code>backend/eval/reports/REPORT.md</code>, and the machine-readable
+          metrics are at <code>backend/eval/reports/metrics.json</code>.
+        </p>
+        <p>
+          The decision rule the whole system expresses:
+          <code>contest &lt;=&gt; p_win &gt;= (lambda * c) / amount</code>
+        </p>
+      </div>
+    </noscript>
+  </body>
+</html>

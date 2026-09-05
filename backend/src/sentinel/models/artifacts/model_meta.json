@@ -1,0 +1,285 @@
+{
+  "feature_version": "v1",
+  "feature_order": [
+    "amount_inr",
+    "log_amount",
+    "amount_to_order_ratio",
+    "window_hours",
+    "reason_is_fraud",
+    "reason_is_non_receipt",
+    "reason_is_not_as_described",
+    "reason_is_credit_not_processed",
+    "network_is_visa",
+    "pod_present",
+    "pod_verified",
+    "pod_low_confidence",
+    "pod_signature_captured",
+    "pod_scan_count",
+    "pod_ocr_confidence",
+    "delivery_lag_hours",
+    "delivered_before_dispute",
+    "recipient_name_match",
+    "delivery_address_match",
+    "prior_dispute_count",
+    "account_age_days",
+    "login_to_order_minutes",
+    "ip_offshore_distance_km",
+    "ip_is_offshore",
+    "user_agent_is_mobile",
+    "merchant_comms_count",
+    "refund_requested",
+    "avs_match",
+    "cvv_match",
+    "three_ds_authenticated",
+    "three_ds_failed",
+    "liability_shift",
+    "billing_shipping_match",
+    "item_count",
+    "evidence_completeness_score"
+  ],
+  "integer_feature_indices": [
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    16,
+    19,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    33
+  ],
+  "trained_at": "2026-09-05T11:49:04.855763+00:00",
+  "n_corpus_rows": 15000,
+  "n_fit_rows": 11250,
+  "n_stop_rows": 1875,
+  "n_calib_rows": 1875,
+  "base_rate": 0.375133,
+  "best_iteration": 76,
+  "stop_fold_auc": 0.818297,
+  "stop_fold_logloss": 0.499842,
+  "lgb_params": {
+    "objective": "binary",
+    "metric": [
+      "auc",
+      "binary_logloss"
+    ],
+    "boosting_type": "gbdt",
+    "learning_rate": 0.045,
+    "num_leaves": 31,
+    "max_depth": 6,
+    "min_data_in_leaf": 60,
+    "feature_fraction": 0.85,
+    "bagging_fraction": 0.85,
+    "bagging_freq": 1,
+    "lambda_l2": 1.0,
+    "verbosity": -1,
+    "seed": 20260934,
+    "bagging_seed": 20260935,
+    "feature_fraction_seed": 20260936,
+    "data_random_seed": 20260937,
+    "deterministic": true,
+    "force_row_wise": true,
+    "num_threads": 1
+  },
+  "calibration": {
+    "brier_before": 0.169563,
+    "brier_after": 0.170095,
+    "ece_before": 0.025382,
+    "ece_after": 0.035442,
+    "n_calibration_rows": 11250,
+    "mode": "identity",
+    "n_selection_rows": 1875,
+    "selection_criterion": "held-out Brier score on the calib fold"
+  },
+  "feature_importances": [
+    {
+      "feature": "evidence_completeness_score",
+      "gain": 10449.4217,
+      "share": 0.224181
+    },
+    {
+      "feature": "three_ds_authenticated",
+      "gain": 8279.094,
+      "share": 0.177619
+    },
+    {
+      "feature": "reason_is_non_receipt",
+      "gain": 5217.7006,
+      "share": 0.11194
+    },
+    {
+      "feature": "prior_dispute_count",
+      "gain": 3184.2879,
+      "share": 0.068315
+    },
+    {
+      "feature": "delivery_lag_hours",
+      "gain": 3024.6491,
+      "share": 0.064891
+    },
+    {
+      "feature": "reason_is_fraud",
+      "gain": 2125.7995,
+      "share": 0.045607
+    },
+    {
+      "feature": "pod_ocr_confidence",
+      "gain": 1881.1164,
+      "share": 0.040357
+    },
+    {
+      "feature": "account_age_days",
+      "gain": 1832.2775,
+      "share": 0.03931
+    },
+    {
+      "feature": "login_to_order_minutes",
+      "gain": 1539.5272,
+      "share": 0.033029
+    },
+    {
+      "feature": "reason_is_not_as_described",
+      "gain": 1380.5186,
+      "share": 0.029618
+    },
+    {
+      "feature": "ip_offshore_distance_km",
+      "gain": 1191.691,
+      "share": 0.025566
+    },
+    {
+      "feature": "amount_inr",
+      "gain": 863.7823,
+      "share": 0.018532
+    },
+    {
+      "feature": "pod_present",
+      "gain": 860.351,
+      "share": 0.018458
+    },
+    {
+      "feature": "refund_requested",
+      "gain": 836.6984,
+      "share": 0.01795
+    },
+    {
+      "feature": "window_hours",
+      "gain": 577.9327,
+      "share": 0.012399
+    },
+    {
+      "feature": "pod_scan_count",
+      "gain": 556.3953,
+      "share": 0.011937
+    },
+    {
+      "feature": "delivered_before_dispute",
+      "gain": 518.5319,
+      "share": 0.011125
+    },
+    {
+      "feature": "reason_is_credit_not_processed",
+      "gain": 492.2093,
+      "share": 0.01056
+    },
+    {
+      "feature": "merchant_comms_count",
+      "gain": 326.8143,
+      "share": 0.007011
+    },
+    {
+      "feature": "amount_to_order_ratio",
+      "gain": 193.9902,
+      "share": 0.004162
+    },
+    {
+      "feature": "item_count",
+      "gain": 188.8645,
+      "share": 0.004052
+    },
+    {
+      "feature": "liability_shift",
+      "gain": 184.6006,
+      "share": 0.00396
+    },
+    {
+      "feature": "billing_shipping_match",
+      "gain": 178.6551,
+      "share": 0.003833
+    },
+    {
+      "feature": "ip_is_offshore",
+      "gain": 145.0245,
+      "share": 0.003111
+    },
+    {
+      "feature": "recipient_name_match",
+      "gain": 114.4246,
+      "share": 0.002455
+    },
+    {
+      "feature": "pod_low_confidence",
+      "gain": 103.0024,
+      "share": 0.00221
+    },
+    {
+      "feature": "log_amount",
+      "gain": 85.6628,
+      "share": 0.001838
+    },
+    {
+      "feature": "pod_signature_captured",
+      "gain": 53.9492,
+      "share": 0.001157
+    },
+    {
+      "feature": "avs_match",
+      "gain": 47.7998,
+      "share": 0.001025
+    },
+    {
+      "feature": "user_agent_is_mobile",
+      "gain": 47.5346,
+      "share": 0.00102
+    },
+    {
+      "feature": "network_is_visa",
+      "gain": 43.7795,
+      "share": 0.000939
+    },
+    {
+      "feature": "cvv_match",
+      "gain": 29.9925,
+      "share": 0.000643
+    },
+    {
+      "feature": "pod_verified",
+      "gain": 28.7329,
+      "share": 0.000616
+    },
+    {
+      "feature": "three_ds_failed",
+      "gain": 26.7432,
+      "share": 0.000574
+    },
+    {
+      "feature": "delivery_address_match",
+      "gain": 0.0,
+      "share": 0.0
+    }
+  ],
+  "model_version": "lgbm-v1-21767989f402"
+}
