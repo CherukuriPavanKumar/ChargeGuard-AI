@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: chargeguard-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && PYTHONPATH="src:." python -m data_gen.generator && PYTHONPATH="src:." python -m sentinel.models.train && PYTHONPATH="src:." python -m eval.harness
+    startCommand: PYTHONPATH="src:." python -m uvicorn sentinel.api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: ChargeGuard_CORS_ORIGINS
+        sync: false
+      - key: ChargeGuard_ANTHROPIC_API_KEY
+        sync: false
